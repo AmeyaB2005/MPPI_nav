@@ -26,12 +26,10 @@ red = driven path, blue = obstacles._
 3. [Run it](#run-it)
 4. [How it works](#how-it-works)
 5. [MPPI in detail](#mppi-in-detail)
-6. [Design decisions](#design-decisions)
-7. [Results](#results)
-8. [Testing](#testing)
-9. [Problems faced and how they were solved](#problems-faced-and-how-they-were-solved)
-10. [Known limitations and future work](#known-limitations-and-future-work)
-11. [Package layout](#package-layout)
+6. [Results](#results)
+7. [Testing](#testing)
+8. [Known limitations and future work](#known-limitations-and-future-work)
+9. [Package layout](#package-layout)
 
 ---
 
@@ -168,7 +166,7 @@ All K rollouts are computed at once with cumulative sums over time, giving an ar
 1. **Sample.** $V_k = \mathrm{clip}(U + \varepsilon_k)$ with $\varepsilon_k \sim \mathcal N(0, \Sigma)$, $\Sigma = \mathrm{diag}(0.1^2, 0.6^2)$. The sample set also always contains:
    - the current plan $U$ itself and a "stop" sequence;
    - 10 % exploration samples drawn around zero;
-   - 32 fixed "turn-and-go" primitives (see design decisions).
+   - 32 fixed "turn-and-go" primitives: full speed, turning at up to ±1.5 rad/s for 0.9 s or 1.5 s, then straight or turning back.
 2. **Roll out** every $V_k$ with the model, giving trajectories $\tau_k$.
 3. **Score** every trajectory: $S_k = \sum_t c(\tau_{k,t}, V_{k,t}) + \phi(\tau_{k,T})$ (cost terms below).
 4. **Weight** the samples (softmin):
@@ -202,55 +200,6 @@ While the path ahead is blocked, tracking and heading are multiplied by `blocked
 
 ---
 
-## Design decisions
-**Case 4: local window, no shortcuts at crossings.**
-- The robot's `progress_idx` only increases. It searches for the nearest path point only within
-  [progress − 0.5 m, progress + 0.5 m], so at a crossing the other pass (metres away *along the
-  path*) is never matched.
-- Inside the cost, each rollout's position along the path is matched **forward only**: step t
-  may advance at most 3 points past step t−1. A rollout that cuts across a loop cannot "teleport"
-  to the far side and claim progress.
-- Progress is capped at what full-speed driving along the path would earn, so cutting corners pays nothing.
-
-**Case 3: never freeze in front of a long obstacle.**
-- **Progress reward**: without it, stopping in front of the box is the cheapest option.
-- **Time-correlated noise**: noise is drawn at 6 knots and interpolated. With white noise a
-  sample's average speed has std σ/√T, so once the robot slows down no sample drives far enough
-  to find the way round.
-- **Blocked-path relaxation**: if the path ahead is blocked, tracking is relaxed, so moving
-  sideways is not punished (the same idea as Nav2's MPPI critics backing off on an occupied path).
-
-**Case 2: wide obstacles and the collision margin.**
-- A **5.1 s horizon** (dt 0.15 s × 34 steps, about 1.1 m) lets rollouts reach past a wall end
-  0.7 m to the side. 3 s was too short and the robot froze.
-- **32 "turn-and-go" motion primitives** in every sample set: full speed, turning at ±1.5 rad/s
-  for 0.9 s or 1.5 s, then straight or turning back. Random samples rarely contain such a
-  decisive early swerve; the primitives are scored like any other sample.
-- The collision radius of **0.18 m** (robot 0.105 m + 7.5 cm) is a hard limit, and the
-  exponential obstacle cost adds clearance beyond it.
-
-**Dynamic obstacles.** Nothing special in the controller: every scan (5 Hz) replaces the obstacle
-set, and MPPI re-plans 20 times a second. Two details made this work under load:
-- each scan is placed with the **pose at its own timestamp**;
-- subscriptions use a **queue depth of 1** with latency compensation, so the pose is never stale.
-
-**State estimation.** Wheel odometry alone drifted up to **1.47 m / 26°** in one run. Two fixes:
-1. The stock burger's caster ball has no friction setting (μ = 1 by default) and drags in every
-   turn. The launch file patches it to μ = 0, like a free-rolling caster.
-2. An EKF (`config/ekf.yaml`) fuses **wheel forward velocity + IMU gyro yaw rate** only. It
-   leaves out wheel yaw rate (corrupted by slip) and IMU orientation (the real TB3 has no
-   magnetometer).
-
-Result: ≤ 0.12 m / 1° drift on Case 1.
-
-**Comparison with the reference repo (smoothing-rpp).** We kept its CSV format, `odom` fixed
-frame and launch style. While reading it we also found:
-- it publishes `Twist`, but the Jazzy TB3 bridge expects `TwistStamped`;
-- its obstacle check covers −60°…+60°, while the scan runs 0…2π, so the front-right (300–360°) is never checked;
-- a `constexpr` hides the `obstacle_threshold` parameter.
-
----
-
 ## Results
 
 ### Gazebo (3 runs per case, measured with Gazebo ground truth, `python3 tools/gz_eval.py`)
@@ -270,21 +219,6 @@ frame and launch style. While reading it we also found:
 anything beyond 10 cm is odometry drift accumulated during the run.
 
 Per-run numbers: [`results/gazebo_metrics.md`](results/gazebo_metrics.md). Plots: `results/gz_<case>.png`.
-
-### Offline 2D simulator (`python3 sim2d/run_all.py`)
-Same YAML parameters and the same scan → points code as the ROS node; 5 Hz lidar with 1 cm noise, seed 0.
-
-| Case | Done | Time [s] | Min body clearance [m] | CTE mean / max [cm] | Coverage [%] | Collisions | MPPI step mean / max [ms] |
-|---|---|---|---|---|---|---|---|
-| case1 (thin wall) | ✅ | 40.0 | 0.103 | 1.8 / 26.3 | 84 | 0 | 33 / 90 |
-| case2 (symmetric T) | ✅ | 42.1 | 0.121 | 3.1 / 41.7 | 79 | 0 | 30 / 83 |
-| case3 (long box) | ✅ | 41.3 | 0.172 | 0.6 / 9.2 | 87 | 0 | 35 / 109 |
-| case4 (self-crossing loop) | ✅ | 49.5 | – | 2.7 / 12.1 | 100 | 0 | 23 / 50 |
-| case4b (tight loops) | ✅ | 48.2 | – | 2.5 / 8.2 | 100 | 0 | 23 / 50 |
-| dynamic (curve + dropped boxes) | ✅ | 47.9 | 0.134 | 2.4 / 22.1 | 79 | 0 | 29 / 72 |
-| loop (loop + dropped boxes) | ✅ | 53.4 | 0.151 | 4.0 / 11.8 | 97 | 0 | 33 / 68 |
-
-Plots: `sim2d/results/<case>.png`. One run per case (seed 0) with the final parameters; during tuning, cases were also checked on other seeds (e.g. Case 2 on seeds 0–3).
 
 ---
 
@@ -307,26 +241,6 @@ The unit tests cover:
 - closed-loop straight-line tracking;
 - YAML defaults matching the code;
 - scan → point conversion, CSV I/O and 0.1 m recorder spacing.
-
----
-
-## Problems faced and how they were solved
-| Problem | Root cause | Fix |
-|---|---|---|
-| Robot froze in front of obstacles | White noise averages out over the horizon, so from v ≈ 0 no sample drives forward far enough | Time-correlated noise (6 knots) |
-| Still froze: "stop" cost 3.5, "go around" 25 | Progress reward too small compared with the detour penalties | `w_progress` 5 → 15, `w_obstacle` 2 → 1 (safety stays in `collision_radius`) |
-| Froze in front of wide walls | 3 s horizon (0.66 m) could not reach past a wall end | 5.1 s horizon (dt 0.15, T 34) + blocked-path relaxation |
-| Left/right dithering in front of a wall | Averaging a left plan and a right plan gives "straight ahead" | Longer horizon; λ tuned to 1.0 |
-| Corner cutting and skipped loops (Case 4) | Rollouts matched to *any* nearby path point, including a later lap | Forward-only per-rollout matching, progress cap, terminal cost only near the goal |
-| Weights collapsed onto one sample | Integer progress → 15-point jumps between near-identical samples | Continuous progress (index + fraction along the segment) |
-| Froze for 68 s at a centred T (Case 2) | No random sample contained a decisive early swerve (checked: a swerve scored −55 vs −1 for stopping) | 32 deterministic motion primitives per cycle |
-| MPPI step 195 ms in ROS (5 Hz) | `/clock` at 1 kHz handled in Python + multi-threaded executor fighting for the GIL | Single-threaded executor (26 ms); own worlds with a 4 ms physics step (`/clock` 250 Hz) |
-| Robot "on the path" in RViz but off it in Gazebo | Wheel odometry drift (1.47 m / 26°): the caster drags (μ = 1) and wheels slip in turns | Frictionless caster patch + EKF with the IMU gyro → ≤ 0.12 m |
-| Wall points swung and bent near obstacles (GUI on) | Odom queue depth 20 + slow steps under GUI load → pose up to 0.66 s stale | Queue depth 1, latency compensation, pose-age monitor |
-| Gazebo's `/odom` did not match the path frame | DiffDrive odometry starts at (0, 0, 0) at the spawn pose | Spawn pose passed to the tracker, path moved into the odom frame |
-| Recording and replay in different frames | Recorder used the stock robot and raw `/odom` | Shared `launch_utils.sim_actions()` for both launches; recorder uses the EKF pose |
-| A box covered most of a hand-recorded track | 90 % of that track lay within 0.8 m of another pass | Spawner skips spots near other passes; smooth generated loop for Case 4 |
-| Double Ctrl+C traceback, at risk of losing the CSV | The terminal and `ros2 launch` both send SIGINT | Nodes ignore the second SIGINT during clean-up |
 
 ---
 
