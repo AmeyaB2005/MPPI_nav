@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Gazebo evaluation: raw logs, ground-truth dumps and intermediate batches
+results/logs/
+results/rerun/
+results/case4_eval/
+results/*_traversed.csv
+
+# Editor / OS
+.vscode/
+*.swp
+.DS_Store

@@ -1,0 +1,67 @@
+# MPPI tracker parameters.
+# Used by BOTH the ROS node (mppi_tracker) and the offline simulator (sim2d/),
+# so a value tuned offline is exactly the value used in Gazebo.
+#
+# Units: metres, seconds, radians. Costs are unitless (only their ratios and
+# their scale relative to `temperature` matter).
+mppi_tracker:
+  ros__parameters:
+    # ---------------- ROS node only ----------------
+    control_rate: 20.0          # [Hz] MPPI control loop
+    frame_id: odom              # world frame of the path and the markers
+    sensor_timeout: 0.5         # [s] stop if no /odom or /scan for this long
+
+    # ---------------- Model / sampling ----------------
+    dt: 0.15                    # [s] model step inside the rollout (3.3 cm at full speed)
+    horizon: 34                 # T: 34 x 0.15 s = 5.1 s look-ahead (~1.1 m at full speed)
+    num_samples: 1000           # K: sampled control sequences per cycle
+    temperature: 1.0            # lambda: low = trust only the best samples
+    noise_v: 0.1                # sigma of the linear-velocity noise [m/s]
+    noise_w: 0.6                # sigma of the angular-velocity noise [rad/s]
+    v_min: -0.05                # [m/s] allow slight reversing for recovery
+    v_max: 0.22                 # [m/s] TurtleBot3 burger limit
+    w_min: -2.0                 # [rad/s]
+    w_max: 2.0                  # [rad/s] (burger max 2.84, kept lower for smoothness)
+    exploration_ratio: 0.1      # fraction of samples drawn around zero instead of around U
+    noise_knots: 6              # noise drawn at 6 knots and interpolated (time-correlated)
+    primitive_rates: 8          # "turn and go" primitives: 8 turn rates ...
+    primitive_rate_max: 1.5     # [rad/s] ... spread over +-1.5 rad/s ...
+    primitive_turn_steps: [6, 10]  # ... turning for 6 or 10 steps, then straight or back (32 samples)
+    use_savgol: true            # smooth the nominal sequence with a Savitzky-Golay filter
+    savgol_window: 9            # odd number of steps
+    savgol_order: 3
+
+    # ---------------- Local path window (Case 4) ----------------
+    search_back: 5              # [points] progress search window behind progress_idx
+    search_forward: 5           # ... and ahead of it (0.5 m; the robot moves ~1 cm per cycle)
+    window_length: 20           # [points] path points used by the costs (2 m > horizon reach)
+    rollout_search: 3           # [points] a rollout may advance at most this far along the path per step
+    goal_tolerance: 0.1         # [m] distance to the last path point to call the goal reached
+
+    # ---------------- Cost weights ----------------
+    w_track: 5.0                # x distance to the rollout's path point, per step
+    w_progress: 15.0            # reward per path point (0.1 m) reached by the terminal state
+    w_heading: 1.0              # x (1 - cos(heading error)), per step
+    w_terminal: 1.0             # x distance from the final state to the goal (only near the goal)
+    w_v: 0.0                    # x v^2 per step (0: progress already sets the speed)
+    w_w: 0.05                   # x w^2 per step
+    w_dv: 1.0                   # x (delta v)^2 per step (smoothness)
+    w_dw: 0.1                   # x (delta w)^2 per step (smoothness)
+    blocked_scale: 0.1          # tracking/heading weights x this while the path ahead is blocked
+
+    # ---------------- Obstacles ----------------
+    robot_radius: 0.105         # [m] burger footprint radius (for reporting only)
+    collision_radius: 0.18      # [m] robot radius + safety margin; closer = collision
+    inflation_radius: 0.5       # [m] obstacle cost is zero beyond this distance
+    obstacle_decay: 0.1         # [m] decay length of the exponential obstacle cost
+    w_obstacle: 1.0             # obstacle cost at the collision radius, per step
+    w_collision: 10000.0        # added once per colliding sample (+ per colliding step / T)
+    obstacle_crop_radius: 2.0   # [m] ignore lidar points farther than this from the robot
+    obstacle_voxel: 0.03        # [m] merge lidar points closer than this
+    max_obstacle_points: 360
+
+    # ---------------- Recovery ----------------
+    recovery_speed: 0.05        # [m/s] back away (or creep forward) when every sample collides
+
+    # ---------------- Visualisation ----------------
+    num_vis_samples: 20         # sampled rollouts returned for RViz / plots

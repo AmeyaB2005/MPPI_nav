@@ -1,0 +1,19 @@
+# Dynamic obstacle spawner: drops boxes on the path in front of the moving robot.
+obstacle_spawner:
+  ros__parameters:
+    use_sim_time: true
+    mode: auto                 # auto = drop every `period` s while moving; manual = only on /drop_obstacle
+    period: 8.0                # [s] time between automatic drops
+    ahead_min: 0.8             # [m] distance in front of the robot, measured ALONG the path
+    ahead_max: 1.5
+    lateral_max: 0.15          # [m] random sideways offset from the path, +-
+    size_min: 0.25             # [m] box side length (square boxes)
+    size_max: 0.40
+    height: 0.4                # [m] taller than the lidar (0.19 m)
+    max_boxes: 3               # keep at most this many dropped boxes; the oldest is removed
+    min_end_distance: 1.0      # [m] never drop closer than this to the end of the path
+    crossing_clearance: 0.8    # [m] never drop this close to ANOTHER part of the path (a crossing
+                               #     or the far side of a tight bend): one box would block two passes
+    min_speed: 0.05            # [m/s] only drop automatically while the robot is moving
+    world: default             # Gazebo world name (services /world/<world>/create, /remove)
+    seed: -1                   # random seed, -1 = different every run

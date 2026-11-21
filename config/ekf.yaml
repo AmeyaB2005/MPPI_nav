@@ -1,0 +1,45 @@
+# robot_localization EKF: wheel odometry + IMU gyro -> /odometry/filtered and odom->base_footprint TF.
+#
+# Why: the wheels slip when the robot turns (MPPI turns hard around obstacles), so the
+# heading from wheel odometry drifts (measured: ~12 deg after one detour, which grows into
+# ~0.5 m of position error). A gyro measures the turn rate directly and does not slip.
+#
+# What is fused (15-element config vectors are:
+#   x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az):
+#   wheel odometry: vx, vy           (forward speed; vy ~ 0 for a differential drive)
+#   IMU:            vyaw             (gyro z)
+# Deliberately NOT fused:
+#   wheel odometry yaw rate  - this is the value corrupted by wheel slip
+#   IMU orientation          - the TurtleBot3's real IMU has no magnetometer, so an
+#                              absolute yaw would be "free" information only in simulation
+ekf_filter_node:
+  ros__parameters:
+    use_sim_time: true
+    frequency: 30.0
+    sensor_timeout: 0.2
+    two_d_mode: true                 # planar robot: ignore z, roll, pitch
+    publish_tf: true                 # odom -> base_footprint (Gazebo's own TF is not bridged)
+
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_footprint
+    world_frame: odom
+
+    odom0: /odom
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  true,  false,
+                   false, false, false,
+                   false, false, false]
+    odom0_differential: false
+    odom0_queue_size: 10
+
+    imu0: /imu
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+    imu0_differential: false
+    imu0_queue_size: 20
+    imu0_remove_gravitational_acceleration: true
