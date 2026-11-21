@@ -28,8 +28,7 @@ red = driven path, blue = obstacles._
 5. [MPPI in detail](#mppi-in-detail)
 6. [Results](#results)
 7. [Testing](#testing)
-8. [Known limitations and future work](#known-limitations-and-future-work)
-9. [Package layout](#package-layout)
+8. [Package layout](#package-layout)
 
 ---
 
@@ -241,25 +240,6 @@ The unit tests cover:
 - closed-loop straight-line tracking;
 - YAML defaults matching the code;
 - scan → point conversion, CSV I/O and 0.1 m recorder spacing.
-
----
-
-## Known limitations and future work
-- **Odometry-only localization.** There is no map, so drift from wheel slip during very tight turns
-  or spins cannot be corrected. A hand-recorded path with a near-spin ended 29–49 cm from its real
-  goal. Future work: AMCL / SLAM, or fusing lidar scan matching into the EKF.
-- **Two boxes on the loop itself can cause a shortcut.** Tracking is relaxed while anything in the
-  2 m window ahead is blocked, so two boxes on a curve keep it relaxed and the robot may cut
-  across the inside of the loop. Two finer-grained versions (relax only blocked points; relax the
-  first blocked stretch) made the robot freeze instead, so they were reverted. Future work: cap
-  how fast a rollout may progress while it is off the path.
-- **Raw lidar points instead of a costmap.** There is no memory of obstacles that leave the field of
-  view, and the obstacle model is a circular footprint. Future work: a local costmap layer and the
-  real rectangular footprint.
-- **Compute.** About 30–47 ms per step in Python and NumPy, with peaks of 85–137 ms when the Gazebo
-  GUI and RViz render on the CPU. Future work: JAX or GPU rollouts, or fewer samples.
-- **Case 4 path.** The required Case 4 replay uses a generated smooth loop. The path recorder is
-  demonstrated with a teleop recording (`paths/case4_recorded.csv`), which also replays in order.
 
 ---
 
