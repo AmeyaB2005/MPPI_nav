@@ -13,3 +13,6 @@ results/*_traversed.csv
 .vscode/
 *.swp
 .DS_Store
+
+# Personal notes (kept local, not in the repo)
+docs/demo_shot_list.md
