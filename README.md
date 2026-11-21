@@ -57,7 +57,7 @@ Tested on **Ubuntu 24.04 (WSL2) + ROS 2 Jazzy + Gazebo Harmonic**, TurtleBot3 **
 sudo apt install ros-jazzy-turtlebot3 ros-jazzy-turtlebot3-simulations ros-jazzy-turtlebot3-msgs \
                  ros-jazzy-robot-localization ros-jazzy-ros2run python3-scipy python3-matplotlib
 mkdir -p ~/ros2_ws/src && cd ~/ros2_ws/src
-git clone <this repo> mppi_nav
+git clone https://github.com/AmeyaB2005/MPPI_nav.git mppi_nav
 cd ~/ros2_ws
 source /opt/ros/jazzy/setup.bash
 colcon build --packages-select mppi_nav --symlink-install
