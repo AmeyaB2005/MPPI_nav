@@ -7,9 +7,35 @@ Regulated Pure Pursuit tracker of the reference repo
 ([manojkarnekar/smoothing-rpp](https://github.com/manojkarnekar/smoothing-rpp)), which stops and
 waits whenever something is in front of it.
 
-> 🎬 **Demo video:** _link here_
->
-> ![demo](docs/demo.gif) <!-- placeholder: add a GIF / screenshot of RViz + Gazebo -->
+## 🎬 Demo videos
+<!-- To add a video: edit this README on GitHub and drag the video file onto the line under its
+     heading (GitHub uploads it and inserts the link), or paste a YouTube / Google Drive link. -->
+
+### Case 1: thin wall across the path (static obstacle)
+The robot goes round the short end of the wall and returns to the recorded path.
+
+_Video coming soon_
+
+### Case 2: symmetric T (static obstacle)
+The T's leg lies on the path: the robot leaves the path early, runs alongside the leg, rounds an
+end of the cross bar and rejoins.
+
+_Video coming soon_
+
+### Case 3: long box on the path (static obstacle)
+A long detour round a 2 m box without stopping, then back onto the path.
+
+_Video coming soon_
+
+### Case 4: recorded self-crossing path
+A complicated path that crosses itself is replayed in order, with no shortcut at the crossing.
+
+_Video coming soon_
+
+### Dynamic obstacle avoidance
+Boxes are dropped on the path in front of the moving robot; it goes round each one and rejoins.
+
+_Video coming soon_
 
 | Case 1: thin wall | Case 2: symmetric T | Case 3: long box | Case 4: self-crossing loop |
 |---|---|---|---|
