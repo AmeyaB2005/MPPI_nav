@@ -14,28 +14,48 @@ waits whenever something is in front of it.
 ### Case 1: thin wall across the path (static obstacle)
 The robot goes round the short end of the wall and returns to the recorded path.
 
-_Video coming soon_
+
+https://github.com/user-attachments/assets/bcf944d3-c6f5-460d-9301-a98d1b078b55
+
+
+
 
 ### Case 2: symmetric T (static obstacle)
 The T's leg lies on the path: the robot leaves the path early, runs alongside the leg, rounds an
 end of the cross bar and rejoins.
 
-_Video coming soon_
+
+
+https://github.com/user-attachments/assets/3d3738ce-0bad-4ca7-bdbe-974b81ecafb8
+
+
 
 ### Case 3: long box on the path (static obstacle)
 A long detour round a 2 m box without stopping, then back onto the path.
 
-_Video coming soon_
+
+
+https://github.com/user-attachments/assets/9aeee5af-8c1b-466d-966c-53c0d01de24d
+
+
 
 ### Case 4: recorded self-crossing path
 A complicated path that crosses itself is replayed in order, with no shortcut at the crossing.
 
-_Video coming soon_
+
+
+https://github.com/user-attachments/assets/b1a303b0-b631-460b-9bd1-eedc3ae05d5d
+
+
 
 ### Dynamic obstacle avoidance
 Boxes are dropped on the path in front of the moving robot; it goes round each one and rejoins.
 
-_Video coming soon_
+
+
+https://github.com/user-attachments/assets/cd90bda4-55c8-483e-99d3-4c10fd02c8fd
+
+
 
 | Case 1: thin wall | Case 2: symmetric T | Case 3: long box | Case 4: self-crossing loop |
 |---|---|---|---|
