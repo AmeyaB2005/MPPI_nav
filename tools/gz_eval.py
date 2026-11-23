@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Gazebo evaluation: run every case N times headless and measure it with ground truth.
 
-    source /opt/ros/jazzy/setup.bash && source ~/ros2_ws/install/setup.bash
+    source /opt/ros/jazzy/setup.bash && source <your_ws>/install/setup.bash
     export TURTLEBOT3_MODEL=burger
     python3 tools/gz_eval.py                       # all cases, 3 runs each
     python3 tools/gz_eval.py --cases case1 case2 --runs 1

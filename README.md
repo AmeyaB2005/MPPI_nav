@@ -99,9 +99,10 @@ Tested on **Ubuntu 24.04 (WSL2) + ROS 2 Jazzy + Gazebo Harmonic**, TurtleBot3 **
 ```bash
 sudo apt install ros-jazzy-turtlebot3 ros-jazzy-turtlebot3-simulations ros-jazzy-turtlebot3-msgs \
                  ros-jazzy-robot-localization ros-jazzy-ros2run python3-scipy python3-matplotlib
+# any ROS 2 workspace works; ~/ros2_ws is only an example
 mkdir -p ~/ros2_ws/src && cd ~/ros2_ws/src
 git clone https://github.com/AmeyaB2005/MPPI_nav.git mppi_nav
-cd ~/ros2_ws
+cd ..                                # back to the workspace root
 source /opt/ros/jazzy/setup.bash
 colcon build --packages-select mppi_nav --symlink-install
 source install/setup.bash
@@ -109,7 +110,11 @@ export TURTLEBOT3_MODEL=burger
 ```
 
 ## Run it
-Every terminal needs `source /opt/ros/jazzy/setup.bash && source ~/ros2_ws/install/setup.bash && export TURTLEBOT3_MODEL=burger`.
+Every terminal needs `source /opt/ros/jazzy/setup.bash && source <your_ws>/install/setup.bash && export TURTLEBOT3_MODEL=burger`.
+
+No paths need editing, wherever the repository is cloned: with `--symlink-install` the launch files
+find the cloned folder themselves, read paths from `<clone>/paths/` and write results to
+`<clone>/results/` (without `--symlink-install`: `~/.ros/mppi_nav/`).
 
 ### Test cases
 ```bash
@@ -269,7 +274,7 @@ Per-run numbers: [`results/gazebo_metrics.md`](results/gazebo_metrics.md). Plots
 
 ## Testing
 ```bash
-cd ~/ros2_ws/src/mppi_nav
+cd <your_ws>/src/mppi_nav          # the cloned repository
 python3 -m pytest -q test           # 32 unit tests (no ROS needed for mppi_core / utils)
 python3 sim2d/run_all.py            # offline closed-loop runs + PNGs (sim2d/results/)
 python3 tools/gz_eval.py --runs 3   # Gazebo batch evaluation (headless, ~25 min)

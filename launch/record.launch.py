@@ -25,6 +25,7 @@ from launch.actions import AppendEnvironmentVariable, DeclareLaunchArgument, Log
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
+from mppi_nav.data_dirs import data_dir
 from mppi_nav.launch_utils import pose_topic, sim_actions, world_file_for
 
 
@@ -57,7 +58,7 @@ def generate_launch_description() -> LaunchDescription:
     args = [
         DeclareLaunchArgument('output', default_value='recorded.csv',
                               description='CSV file name (relative to output_dir) or absolute path'),
-        DeclareLaunchArgument('output_dir', default_value='~/ros2_ws/src/mppi_nav/paths',
+        DeclareLaunchArgument('output_dir', default_value=data_dir('paths'),
                               description='Folder for relative output names'),
         DeclareLaunchArgument('spacing', default_value='0.1',
                               description='Distance between recorded points [m]'),

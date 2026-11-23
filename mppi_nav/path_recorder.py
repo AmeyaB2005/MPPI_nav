@@ -22,7 +22,7 @@ Parameters
   start_x/y/yaw (float) Spawn pose in the world frame.        [0, 0, 0]
   output_file   (str)   CSV file to write. Relative paths are resolved against
                         `output_dir`.                          [recorded.csv]
-  output_dir    (str)   Folder for relative output files.     [~/ros2_ws/src/mppi_nav/paths]
+  output_dir    (str)   Folder for relative output files.     [<clone>/paths, see data_dirs.py]
   spacing       (float) Distance between saved points [m].    [0.1]
   frame_id      (str)   Frame of the recorded points.         [odom]
   publish_rate  (float) Rate of Path/Marker publishing [Hz].  [2.0]
@@ -42,6 +42,7 @@ from nav_msgs.msg import Odometry, Path
 from std_srvs.srv import Trigger
 from visualization_msgs.msg import Marker
 
+from mppi_nav.data_dirs import data_dir
 from mppi_nav.markers import GREEN, make_marker, make_path_msg
 from mppi_nav.utils import Point, points_at_spacing, resolve_path, save_path_csv, spacing_stats
 
@@ -57,7 +58,7 @@ class PathRecorder(Node):
         self.declare_parameter('start_y', 0.0)
         self.declare_parameter('start_yaw', 0.0)
         self.declare_parameter('output_file', 'recorded.csv')
-        self.declare_parameter('output_dir', '~/ros2_ws/src/mppi_nav/paths')
+        self.declare_parameter('output_dir', data_dir('paths'))
         self.declare_parameter('spacing', 0.1)
         self.declare_parameter('frame_id', 'odom')
         self.declare_parameter('publish_rate', 2.0)

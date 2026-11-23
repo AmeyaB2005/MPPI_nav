@@ -30,6 +30,7 @@ from launch.actions import AppendEnvironmentVariable, DeclareLaunchArgument, Log
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
+from mppi_nav.data_dirs import data_dir
 from mppi_nav.launch_utils import (pose_topic, resolve_csv, sim_actions, spawn_pose_from_path,
                                    world_file_for)
 
@@ -59,8 +60,7 @@ def launch_setup(context, *args, **kwargs):
     traversed = arg('traversed_file')
     if traversed == 'auto':
         stem = os.path.splitext(os.path.basename(csv_file))[0]
-        traversed = os.path.normpath(os.path.join(
-            os.path.expanduser(arg('paths_dir')), '..', 'results', f'{stem}_traversed.csv'))
+        traversed = os.path.join(data_dir('results'), f'{stem}_traversed.csv')
 
     # Gazebo, patched robot, bridges, EKF, RViz: shared with record.launch.py
     sim = sim_actions(world_file, x, y, yaw, use_ekf, arg('gui'), arg('use_rviz'))
@@ -110,7 +110,7 @@ def generate_launch_description() -> LaunchDescription:
                                           'loads paths/<case>.csv and worlds/<case>.sdf'),
         DeclareLaunchArgument('path', default_value='',
                               description='CSV path file (absolute, or a name in paths/)'),
-        DeclareLaunchArgument('paths_dir', default_value='~/ros2_ws/src/mppi_nav/paths',
+        DeclareLaunchArgument('paths_dir', default_value=data_dir('paths'),
                               description='Extra folder searched for relative CSV names'),
         DeclareLaunchArgument('world', default_value='',
                               description="worlds/<name>.sdf: empty|case1|case2|case3|...; "
